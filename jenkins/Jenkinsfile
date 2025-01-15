@@ -27,7 +27,7 @@ pipeline {
                 script {
                     setBuildDescription('Clean Up Backend Docker Images')
                     sh '''
-						docker images | grep "${ECR_REPO}" | awk '{print \$3}' | xargs --no-run-if-empty docker rmi -f
+			docker images | grep "${ECR_REPO}" | awk '{print \$3}' | xargs --no-run-if-empty docker rmi -f
                     '''
                     
                     sh '''
@@ -110,13 +110,13 @@ pipeline {
             script {
                 def failedStageName = currentBuild.description ?: 'Unknown'
                 sendDiscordNotification(
-                        "${env.JOB_NAME} : ${currentBuild.displayName} Backend 빌드 실패 😭",
-                        """
-                        제목: ${currentBuild.displayName}
-                        결과: ${currentBuild.result}
-                        실패한 단계: ${failedStageName}
-                        실행 시간: ${currentBuild.duration / 1000}s
-                        """
+                    "${env.JOB_NAME} : ${currentBuild.displayName} Backend 빌드 실패 😭",
+                    """
+                    제목: ${currentBuild.displayName}
+                    결과: ${currentBuild.result}
+                    실패한 단계: ${failedStageName}
+                    실행 시간: ${currentBuild.duration / 1000}s
+                    """
                 )
             }
         }
