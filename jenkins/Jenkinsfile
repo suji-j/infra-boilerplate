@@ -1,0 +1,152 @@
+pipeline {
+    agent any
+
+    environment {
+        GITHUB_TOKEN = credentials('github-token')
+        BACKEND_REPO = 'https://github.com/backend.git'
+        INFRA_REPO = 'https://github.com/infra.git'
+        ECR_REPO = '<AWS_ACCOUNT_ID>.dkr.ecr.ap-northeast-2.amazonaws.com/backend'
+        AWS_CREDENTIALS = 'ecr:ap-northeast-2:aws-access-key'
+        DISCORD_WEBHOOK = credentials('discord-webhook')
+    }
+    
+    tools {
+        jdk 'JDK17'
+    }
+
+    stages {
+        stage('Checkout Backend Repo') {
+            steps {
+                setBuildDescription('Checkout Backend Repo')
+                git branch: 'deploy', url: "${BACKEND_REPO}"
+            }
+        }
+        
+        stage('Clean Up Backend Docker Images') {
+            steps {
+                script {
+                    setBuildDescription('Clean Up Backend Docker Images')
+                    sh '''
+						docker images | grep "${ECR_REPO}" | awk '{print \$3}' | xargs --no-run-if-empty docker rmi -f
+                    '''
+                    
+                    sh '''
+                        docker images | grep "<none>" | awk '{print $3}' | xargs --no-run-if-empty docker rmi -f
+                    '''
+                }
+            }
+        }
+        
+        stage('Build Backend Docker Image') {
+            steps {
+                script {
+                    setBuildDescription('Build Backend Docker Image')
+                    dockerImage = docker.build("${ECR_REPO}:${env.BUILD_ID}", ".")
+                }
+            }
+        }
+        
+        stage('Push Backend Docker Image to ECR') {
+            steps {
+                script {
+                    setBuildDescription('Push Backend Docker Image to ECR')
+                    docker.withRegistry("https://${ECR_REPO}", "${AWS_CREDENTIALS}") {
+                        dockerImage.push("${env.BUILD_ID}")
+                    }
+                }
+            }
+        }
+        
+        stage('Checkout Infra Repo') {
+            steps {
+                script {
+                    setBuildDescription('Checkout Infra Repo')
+                    if (fileExists('infra')) {
+                        sh 'cd infra && git checkout main'
+                        sh 'cd infra && git pull origin main'
+                    } else {
+                        sh 'git clone https://github.com/infra'
+                        sh 'cd infra && git checkout main'
+                    }
+                }
+            }
+        }
+        
+        stage('Update k8s Manifest with New Tag') {
+            steps {
+                script {
+                    setBuildDescription('Update k8s Manifest with New Tag')
+                    sh "cd infra && sed -i '/newName: <AWS_ACCOUNT_ID>\\.dkr\\.ecr\\.ap-northeast-2\\.amazonaws\\.com\\/backend/!b;n;/newTag:/c\\  newTag: \"${env.BUILD_ID}\"' overlays/dev/kustomization.yml"
+                    
+                    sh 'cd infra && git config user.name "Jenkins"'
+                    sh 'cd infra && git config user.email "jenkins@jenkins.com"'
+                        
+                    sh 'cd infra && git add .'
+                    sh "cd infra && git commit -m '[Jenkins] Backend 이미지 태그 업데이트 (#${env.BUILD_ID})'"
+                    
+                    sh '''
+                        cd infra
+                        git pull --rebase origin main || true
+                        git push https://x-access-token:${GITHUB_TOKEN}@github.com/infra main
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            sendDiscordNotification(
+                "${env.JOB_NAME} : ${currentBuild.displayName} Backend 빌드 성공 🤩",
+                """
+                제목: ${currentBuild.displayName}
+                결과: ${currentBuild.result}
+                실행 시간: ${currentBuild.duration / 1000}s
+                """
+            )
+        }
+        
+        failure {
+            script {
+                def failedStageName = currentBuild.description ?: 'Unknown'
+                sendDiscordNotification(
+                        "${env.JOB_NAME} : ${currentBuild.displayName} Backend 빌드 실패 😭",
+                        """
+                        제목: ${currentBuild.displayName}
+                        결과: ${currentBuild.result}
+                        실패한 단계: ${failedStageName}
+                        실행 시간: ${currentBuild.duration / 1000}s
+                        """
+                )
+            }
+        }
+        
+        aborted {
+            script {
+                sendDiscordNotification(
+                    "${env.JOB_NAME} : ${currentBuild.displayName} Backend 빌드 중단 🤯",
+                    """
+                    제목: ${currentBuild.displayName}
+                    결과: ${currentBuild.result} (중단)
+                    실행 시간: ${currentBuild.duration / 1000}s
+                    """
+                )
+            }
+        }
+    }
+}
+
+def setBuildDescription(stageName) {
+    currentBuild.description = stageName
+}
+
+def sendDiscordNotification(String title, String description) {
+    withCredentials([string(credentialsId: 'discord-webhook', variable: 'DISCORD_WEBHOOK')]) {
+        discordSend description: description,
+            link: env.BUILD_URL,
+            result: currentBuild.currentResult,
+            title: title,
+            webhookURL: env.DISCORD_WEBHOOK
+    }
+}
+
