@@ -81,9 +81,9 @@ resource "aws_security_group" "main" {
 
 # EC2 인스턴스 생성 - t2.medium 유형의 서버를 생성
 resource "aws_instance" "web_medium" {
-  ami           = "ami-062cf18d655c0b1e8" # Ubuntu 20.04 AMI
-  instance_type = "t2.medium"            
-  key_name      = "key_name"             
+  ami           = "var.ami_id"
+  instance_type = "var.instance_type"            
+  key_name      = "var.key_name"             
   subnet_id     = aws_subnet.main.id     
   vpc_security_group_ids = [aws_security_group.main.id]
 
@@ -91,11 +91,3 @@ resource "aws_instance" "web_medium" {
     Name = "server"
   }
 }
-
-# 출력 - EC2 인스턴스의 퍼블릭 IP를 출력
-output "instance_ips" {
-  value = [
-    aws_instance.web_medium.public_ip
-  ]
-}
-
