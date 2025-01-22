@@ -8,11 +8,13 @@
 ### 1️⃣ Jenkins
 
 CI/CD 파이프라인을 구현하기 위한 Jenkinsfile 제공합니다.
-- GitHub 저장소에서 소스 코드 체크아웃.
-- 기존 Docker 이미지 정리 및 새로운 이미지 빌드.
-- 빌드된 Docker 이미지를 AWS Elastic Container Registry(ECR)에 푸시.
-- Kubernetes 매니페스트 파일의 이미지 태그 자동 업데이트.
-- Discord 웹훅을 통해 빌드 상태 알림 전송.
+1. GitHub 저장소에서 소스 코드 체크아웃
+2. 기존 Docker 이미지 정리 및 새로운 이미지 빌드
+3. 빌드된 Docker 이미지를 AWS Elastic Container Registry(ECR)에 푸시
+4. k8s / sshPublisher
+    - Kubernetes 매니페스트 파일의 이미지 태그 자동 업데이트
+    - EC2 인스턴스에 SSH를 통해 접속하여 ECR에서 최신 이미지를 Pull 후 서버에 배포
+6. Discord 웹훅을 통해 빌드 상태 알림 전송
 <br/><br/>
 
 ### 2️⃣ Terraform
