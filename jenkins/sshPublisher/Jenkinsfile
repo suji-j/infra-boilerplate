@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        GITHUB_REPO_URL = 'https://github.com/chatbot-server.git'
+        GITHUB_REPO_URL = 'https://github.com/server.git'
         ECR_REPO = '<AWS_ACCOUNT_ID>.dkr.ecr.ap-northeast-2.amazonaws.com/namespace/docker'
         ECR_CREDENTIALS_ID = 'ecr:ap-northeast-2:ecr_credentials_id'
         REMOTE_USER = 'ubuntu'
