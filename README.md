@@ -37,7 +37,7 @@ terraform plan
 # 인프라를 실제로 생성
 teeraform apply
 ```
-<br/><br/>
+<br/>
 
 ### 3️⃣ Docker
 
