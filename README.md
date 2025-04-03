@@ -26,7 +26,7 @@ AWS에서 EC2 인스턴스를 생성하고 필요한 리소스들을 구성하�
 - 보안 그룹 : EC2 인스턴스의 SSH(포트 22) 액세스를 허용하는 보안 그룹
 - EC2 인스턴스 : 기본 설정으로 EC2 인스턴스를 t2.medium 타입으로 생성
 
-적용 방법
+**[ 적용 방법 ]**
 ```bash
 # 필요한 프로바이더와 플러그인을 초기화
 terraform init
@@ -37,7 +37,7 @@ terraform plan
 # 인프라를 실제로 생성
 teeraform apply
 ```
-<br/>
+<br/><br/>
 
 ### 3️⃣ Docker
 
@@ -46,7 +46,7 @@ teeraform apply
 - 최소화된 런타임 환경 : 최종 이미지는 런타임 환경만 포함하여 배포에 필요한 최소한의 구성만을 포함합니다.
 - 효율적인 의존성 관리 : 빌드 과정에서 의존성 파일을 설치하고, 이를 런타임 환경으로 복사하여 불필요한 의존성을 배제합니다.
 
-적용 방법 및 명령어
+**[ 적용 방법 및 명령어 ]**
 ```bash
 # Docker 이미지 빌드
 docker build -t <image-name> .
@@ -59,4 +59,36 @@ docker ps
 
 # 실행 중인 Docker 컨테이너 종료
 docker stop <container_name>
+```
+<br/><br/>
+
+### 4️⃣ Kustomize
+ **Kubernetes(Kustomize)** 를 사용하여 애플리케이션을 배포하는 방법을 설명합니다.
+ 
+- **Kustomize 환경 구성**
+  - base/ : 기본 리소스 (Deployment, Service 등)
+  - overlays/dev/ : 개발 환경을 위한 Kustomize 패치
+  - overlays/prod/ : 운영 환경을 위한 Kustomize 패치
+- **Ingress 설정**
+  - nginx/ingress.yml : 개발 환경 Ingress 설정
+  - ingress/alb.yml : 운영 환경 ALB Ingress 설정
+
+**[ 적용 방법 ]**
+
+설정 적용 및 업데이트
+```bash
+# dev 환경 배포
+kubectl apply -k overlays/dev
+
+# prod 환경 배포
+kubectl apply -k overlays/prod
+```
+
+배포 삭제
+```bash
+# dev 환경 삭제
+kubectl delete -k overlays/dev  
+
+# prod 환경 삭제
+kubectl delete -k overlays/prod
 ```
