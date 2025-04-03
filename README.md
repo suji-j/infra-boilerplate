@@ -37,7 +37,7 @@ terraform plan
 # 인프라를 실제로 생성
 teeraform apply
 ```
-<br/><br/>
+<br/>
 
 ### 3️⃣ Docker
 
@@ -60,7 +60,7 @@ docker ps
 # 실행 중인 Docker 컨테이너 종료
 docker stop <container_name>
 ```
-<br/><br/>
+<br/>
 
 ### 4️⃣ Kustomize
  **Kubernetes(Kustomize)** 를 사용하여 애플리케이션을 배포하는 방법을 설명합니다.
