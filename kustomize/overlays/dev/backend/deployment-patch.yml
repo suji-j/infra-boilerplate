@@ -15,7 +15,6 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
         - name: backend
-          image: backend-image:dev
           resources:
             limits:
               cpu: "125m"
