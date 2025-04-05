@@ -67,8 +67,8 @@ docker stop <container_name>
  
 - **Kustomize 환경 구성**
   - `base/` : 기본 리소스 (Deployment, Service 등)
-  - `overlays/dev/` : 개발 환경을 위한 Kustomize 패치
-  - `overlays/prod/` : 운영 환경을 위한 Kustomize 패치
+  - `overlays/dev/` : 개발 환경을 위한 patch
+  - `overlays/prod/` : 운영 환경을 위한 patch
 - **Ingress 설정**
   - `nginx/ingress.yml` : 개발 환경 Ingress 설정
   - `ingress/alb.yml` : 운영 환경 ALB Ingress 설정
